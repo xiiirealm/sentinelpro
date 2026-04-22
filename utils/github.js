@@ -1,4 +1,4 @@
-`const axios = require("axios");
+const axios = require("axios");
 
 function parseGitHubUrl(url) {
   const match = url.match(/github\.com\/([^/]+)\/([^/\s]+)/);
