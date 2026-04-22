@@ -25,8 +25,8 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Serve index.html directly from project root
-app.use(express.static(path.join(__dirname)));
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, "public")));
 
 // ── Routes ──────────────────────────────────────────────────────────────────
 app.use("/api", scanRoutes);
@@ -46,7 +46,7 @@ app.get("/health", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // ── Global error handler ────────────────────────────────────────────────────
