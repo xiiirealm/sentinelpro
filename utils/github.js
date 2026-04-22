@@ -10,8 +10,8 @@ async function fetchRepoFiles(owner, repo, path = "", depth = 0) {
   if (depth > 3) return [];
 
   // Read token dynamically on each call so it picks up the latest .env value
-  const token = process.env.GITHUB_TOKEN;
-  const headers = token ? { Authorization: `token ${ token } ` } : {};
+  const token = process.env.GITHUB_TOKEN ? process.env.GITHUB_TOKEN.trim() : null;
+  const headers = token ? { Authorization: `token ${token}` } : {};
 
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
