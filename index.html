@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="CodeSentinel — AI-powered security scanner that finds vulnerabilities in your GitHub repos in seconds."/>
+  <title>CodeSentinel — AI Security Scanner</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<canvas id="particleCanvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    CodeSentinel
+  </div>
+  <div class="nav-links">
+    <span id="apiStatus" class="nav-badge"><span class="status-dot" id="statusDot"></span>Checking APIs…</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="heroSection">
+  <div class="hero-tag">⚡ AI-Powered Security Scanner</div>
+  <h1>Find vulnerabilities<br/>before hackers do</h1>
+  <p>Paste any public GitHub repo. Our AI scans every file and explains every security risk in plain English — with fixes — in seconds.</p>
+
+  <div class="scan-box">
+    <div class="input-row">
+      <input type="text" class="url-input" id="repoInput" placeholder="https://github.com/username/repository" autocomplete="off"/>
+      <button class="scan-btn" id="scanBtn" onclick="startScan()">
+        <span>🔍</span> Scan Repo
+      </button>
+    </div>
+    <p class="scan-hint">🔒 Works with any public GitHub repository. Scans up to 15 files.</p>
+    <div class="error-box" id="errorBox"></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<div class="how-section reveal" id="howSection">
+  <div class="section-heading">
+    <h2>How It Works</h2>
+    <p>Three simple steps to secure your codebase</p>
+  </div>
+  <div class="steps-row">
+    <div class="step-card">
+      <div class="step-num">Step 01</div>
+      <div class="step-icon">🔗</div>
+      <div class="step-title">Paste Your Repo</div>
+      <div class="step-desc">Drop any public GitHub repository URL into the scanner above.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">Step 02</div>
+      <div class="step-icon">🧠</div>
+      <div class="step-title">AI Analyzes Code</div>
+      <div class="step-desc">LLaMA 3.3 70B reads every file like a senior security engineer.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">Step 03</div>
+      <div class="step-icon">🛡️</div>
+      <div class="step-title">Get Your Report</div>
+      <div class="step-desc">Receive detailed vulnerabilities with severity, explanations, and fixes.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="features reveal" id="featuresSection">
+  <div class="feature-card">
+    <div class="feature-icon">🤖</div>
+    <div class="feature-title">AI-Powered Analysis</div>
+    <div class="feature-desc">Uses LLaMA 3.3 70B via Groq to analyze code like a senior security engineer.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">⚡</div>
+    <div class="feature-title">Lightning Fast</div>
+    <div class="feature-desc">Scans entire repositories in under 90 seconds with parallel processing.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🔧</div>
+    <div class="feature-title">Auto-Fix Suggestions</div>
+    <div class="feature-desc">Get corrected code snippets for every vulnerability found. Copy and paste fixes.</div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-strip reveal" id="statsStrip">
+  <div class="stat-item"><div class="stat-num" data-count="39">0</div><div class="stat-desc">A new hack attempt every 39 seconds</div></div>
+  <div class="stat-item"><div class="stat-num" data-count="85">0</div><div class="stat-desc">Of breaches start in app code</div></div>
+  <div class="stat-item"><div class="stat-num" data-count="197">0</div><div class="stat-desc">Days avg to detect a breach</div></div>
+  <div class="stat-item"><div class="stat-num" data-count="4.4">0</div><div class="stat-desc">Average breach damage cost (M$)</div></div>
+</div>
+
+<!-- TRUST -->
+<div class="trust-section reveal">
+  <div class="trust-label">Powered By Industry Leaders</div>
+  <div class="trust-logos">
+    <span>GROQ</span>
+    <span>LLaMA 3.3</span>
+    <span>GitHub API</span>
+    <span>Node.js</span>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-wrap">
+    <div class="loader-icon">🛡️</div>
+    <div class="loader-label" id="loaderLabel">Fetching repository files…</div>
+    <div class="scan-progress"><div class="scan-progress-bar" id="progressBar"></div></div>
+    <div class="loader-sub">Analyzing your code with AI. This takes about 60–90 seconds.</div>
+    <div class="loader-files" id="loaderFiles"></div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="results-header">
+    <div>
+      <div class="repo-name" id="repoName"></div>
+      <div class="results-title" id="resultsTitle"></div>
+    </div>
+    <button class="rescan-btn" onclick="reset()">← Scan Another Repo</button>
+  </div>
+
+  <div class="warning-box" id="warningBox"></div>
+
+  <div class="chart-section" id="chartSection">
+    <div class="donut-wrap">
+      <canvas id="donutChart" width="160" height="160"></canvas>
+      <div class="donut-center">
+        <div class="big" id="totalCount">0</div>
+        <div class="small">Issues</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-row">
+    <div class="summary-card critical"><div class="count" id="countCritical">0</div><div class="label">Critical</div></div>
+    <div class="summary-card high"><div class="count" id="countHigh">0</div><div class="label">High</div></div>
+    <div class="summary-card medium"><div class="count" id="countMedium">0</div><div class="label">Medium</div></div>
+    <div class="summary-card low"><div class="count" id="countLow">0</div><div class="label">Low</div></div>
+  </div>
+
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" onclick="filterVulns('all',this)">All</button>
+    <button class="filter-btn" onclick="filterVulns('critical',this)">🔴 Critical</button>
+    <button class="filter-btn" onclick="filterVulns('high',this)">🟠 High</button>
+    <button class="filter-btn" onclick="filterVulns('medium',this)">🟡 Medium</button>
+    <button class="filter-btn" onclick="filterVulns('low',this)">🟢 Low</button>
+  </div>
+  <div id="vulnList"></div>
+</section>
+
+<footer>Built with ❤️ for security — <a href="#">CodeSentinel</a> | Agentic AI + Cybersecurity</footer>
+
+<script>
+// ── Enhanced Particle Network ──
+(function(){
+  const c=document.getElementById('particleCanvas'),ctx=c.getContext('2d');
+  let w,h,particles=[],mouse={x:null,y:null};
+  function resize(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}
+  window.addEventListener('resize',resize);resize();
+  window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+  window.addEventListener('mouseout',()=>{mouse.x=null;mouse.y=null});
+
+  for(let i=0;i<100;i++) particles.push({
+    x:Math.random()*w,y:Math.random()*h,
+    r:Math.random()*1.8+.4,
+    dx:(Math.random()-.5)*.25,dy:(Math.random()-.5)*.25,
+    o:Math.random()*.35+.08,
+    hue:Math.random()>0.5?240:270
+  });
+
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    particles.forEach(p=>{
+      p.x+=p.dx;p.y+=p.dy;
+      if(p.x<0)p.x=w;if(p.x>w)p.x=0;if(p.y<0)p.y=h;if(p.y>h)p.y=0;
+
+      // Mouse interaction
+      if(mouse.x!==null){
+        const mdx=p.x-mouse.x,mdy=p.y-mouse.y,md=Math.sqrt(mdx*mdx+mdy*mdy);
+        if(md<150){p.x+=mdx/md*.8;p.y+=mdy/md*.8}
+      }
+
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`hsla(${p.hue},80%,72%,${p.o})`;ctx.fill();
+    });
+    // Connections
+    for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<130){
+        ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);
+        ctx.lineTo(particles[j].x,particles[j].y);
+        ctx.strokeStyle=`hsla(250,70%,70%,${.05*(1-d/130)})`;
+        ctx.lineWidth=.5;ctx.stroke();
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── Scroll Reveal ──
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}});
+},{threshold:0.15});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// ── Counter Animation ──
+function animateCounters(){
+  document.querySelectorAll('.stat-num[data-count]').forEach(el=>{
+    const target=parseFloat(el.dataset.count);
+    const suffix=el.closest('.stat-item').querySelector('.stat-desc').textContent.includes('seconds')?'s':
+      el.closest('.stat-item').querySelector('.stat-desc').textContent.includes('%')?'%':
+      el.closest('.stat-item').querySelector('.stat-desc').textContent.includes('cost')?'M':'';
+    const prefix=suffix==='M'?'$':'';
+    const isFloat=target%1!==0;
+    let current=0;
+    const step=target/60;
+    const timer=setInterval(()=>{
+      current+=step;
+      if(current>=target){current=target;clearInterval(timer)}
+      el.textContent=prefix+(isFloat?current.toFixed(1):Math.floor(current))+suffix;
+    },25);
+  });
+}
+const statsObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){animateCounters();statsObserver.unobserve(e.target)}});
+},{threshold:0.3});
+const statsEl=document.getElementById('statsStrip');
+if(statsEl)statsObserver.observe(statsEl);
+
+// ── App Logic ──
+const BACKEND_URL=window.location.origin;
+let allVulns=[];
+
+// Health check on load
+(async function(){
+  const dot=document.getElementById('statusDot'),badge=document.getElementById('apiStatus');
+  try{
+    const r=await fetch(`${BACKEND_URL}/health`);const d=await r.json();
+    if(d.groq&&d.github){dot.className='status-dot ok';badge.innerHTML=`<span class="status-dot ok"></span>APIs Connected`}
+    else{const m=[];if(!d.groq)m.push('GROQ');if(!d.github)m.push('GitHub');
+      dot.className='status-dot err';badge.innerHTML=`<span class="status-dot err"></span>Missing: ${m.join(', ')}`}
+  }catch(e){dot.className='status-dot err';badge.innerHTML=`<span class="status-dot err"></span>Backend Offline`}
+})();
+
+async function startScan(){
+  const url=document.getElementById('repoInput').value.trim();
+  if(!url)return;
+  const btn=document.getElementById('scanBtn'),errorBox=document.getElementById('errorBox');
+  btn.disabled=true;btn.innerHTML='<span>⏳</span> Scanning...';errorBox.style.display='none';
+
+  document.getElementById('heroSection').style.display='none';
+  document.getElementById('howSection').style.display='none';
+  document.getElementById('featuresSection').style.display='none';
+  document.getElementById('statsStrip').style.display='none';
+  document.querySelector('.trust-section').style.display='none';
+  document.getElementById('loader').style.display='block';
+  document.getElementById('results').style.display='none';
+
+  const bar=document.getElementById('progressBar');
+  const loaderLabel=document.getElementById('loaderLabel');
+  const steps=['Fetching repository files…','Reading source code…','Running AI security analysis…',
+    'Identifying vulnerability patterns…','Generating fix suggestions…','Preparing your report…'];
+  let si=0,prog=0;
+  const timer=setInterval(()=>{si=(si+1)%steps.length;loaderLabel.textContent=steps[si]},3500);
+  const progTimer=setInterval(()=>{if(prog<90){prog+=Math.random()*8+2;bar.style.width=Math.min(prog,90)+'%'}},2000);
+
+  try{
+    const res=await fetch(`${BACKEND_URL}/api/scan`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({repoUrl:url})});
+    const data=await res.json();
+    clearInterval(timer);clearInterval(progTimer);bar.style.width='100%';
+    if(!res.ok)throw new Error(data.error||'Scan failed');
+    setTimeout(()=>showResults(data,url),400);
+  }catch(err){
+    clearInterval(timer);clearInterval(progTimer);
+    document.getElementById('heroSection').style.display='block';
+    document.getElementById('howSection').style.display='block';
+    document.getElementById('featuresSection').style.display='grid';
+    document.getElementById('statsStrip').style.display='flex';
+    document.querySelector('.trust-section').style.display='block';
+    document.getElementById('loader').style.display='none';
+    errorBox.textContent='❌ '+(err.message||'Could not connect to backend.');
+    errorBox.style.display='block';
+    btn.disabled=false;btn.innerHTML='<span>🔍</span> Scan Repo';
+  }
+}
+
+function showResults(data){
+  document.getElementById('loader').style.display='none';
+  allVulns=data.vulnerabilities||[];
+  const s=data.summary||{};
+  document.getElementById('repoName').textContent=`📁 ${data.repo} — ${data.filesScanned} files scanned`;
+  document.getElementById('resultsTitle').textContent=allVulns.length===0?'✅ No vulnerabilities found!'
+    :`${allVulns.length} vulnerability${allVulns.length!==1?'ies':'y'} detected`;
+  document.getElementById('countCritical').textContent=s.critical||0;
+  document.getElementById('countHigh').textContent=s.high||0;
+  document.getElementById('countMedium').textContent=s.medium||0;
+  document.getElementById('countLow').textContent=s.low||0;
+  document.getElementById('totalCount').textContent=allVulns.length;
+
+  if(data.warnings&&data.warnings.length){
+    const wb=document.getElementById('warningBox');
+    wb.textContent='⚠️ Some files had issues: '+data.warnings.slice(0,3).join('; ');
+    wb.style.display='block';
+  }
+
+  drawDonut(s);renderVulns(allVulns);
+  document.getElementById('results').style.display='block';
+}
+
+function drawDonut(s){
+  const canvas=document.getElementById('donutChart'),ctx=canvas.getContext('2d');
+  const data=[s.critical||0,s.high||0,s.medium||0,s.low||0];
+  const colors=['#f43f5e','#f97316','#eab308','#10b981'];
+  const total=data.reduce((a,b)=>a+b,0);
+  if(total===0){document.getElementById('chartSection').style.display='none';return}
+  document.getElementById('chartSection').style.display='flex';
+  const cx=80,cy=80,r=60,lw=18;
+  ctx.clearRect(0,0,160,160);
+  let start=-Math.PI/2;
+  data.forEach((v,i)=>{
+    if(v===0)return;
+    const angle=(v/total)*Math.PI*2;
+    ctx.beginPath();ctx.arc(cx,cy,r,start,start+angle);
+    ctx.strokeStyle=colors[i];ctx.lineWidth=lw;ctx.lineCap='round';ctx.stroke();
+    start+=angle+.04;
+  });
+}
+
+function renderVulns(vulns){
+  const list=document.getElementById('vulnList');
+  if(vulns.length===0){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">🎉</div>
+      <div class="empty-title">No vulnerabilities found</div>
+      <div class="empty-sub">Your code looks clean for this filter.</div></div>`;return;
+  }
+  const order={critical:0,high:1,medium:2,low:3};
+  const sorted=[...vulns].sort((a,b)=>(order[a.severity?.toLowerCase()]??4)-(order[b.severity?.toLowerCase()]??4));
+  list.innerHTML=sorted.map((v,i)=>{
+    const sev=(v.severity||'low').toLowerCase();
+    const file=v.file||'unknown';const line=v.line?` · Line ${v.line}`:'';
+    const fix=v.fixedCode?escapeHtml(v.fixedCode):'// No fix provided';
+    return `<div class="vuln-card" id="card-${i}" style="animation-delay:${i*0.05}s">
+      <div class="vuln-header" onclick="toggleCard(${i})">
+        <div class="vuln-left">
+          <span class="severity-badge badge-${sev}">${v.severity||'Low'}</span>
+          <div><div class="vuln-name">${escapeHtml(v.type||'Unknown')}</div>
+          <div class="vuln-meta">${escapeHtml(file)}${line}</div></div>
+        </div><span class="chevron">›</span>
+      </div>
+      <div class="vuln-body">
+        <div class="section-label">🔍 What is the risk?</div>
+        <p class="explanation-text">${escapeHtml(v.explanation||'No explanation.')}</p>
+        <div class="section-label">✅ Solution & Fix</div>
+        <p class="explanation-text" style="margin-bottom: 0.8rem;">${escapeHtml(v.fixReason||'Apply the secure code below to remediate this vulnerability.')}</p>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(${i})">Copy</button>
+        <span id="code-${i}">${fix}</span></div>
+      </div></div>`;
+  }).join('');
+}
+
+function toggleCard(i){document.getElementById(`card-${i}`).classList.toggle('open')}
+function filterVulns(sev,btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderVulns(sev==='all'?allVulns:allVulns.filter(v=>v.severity?.toLowerCase()===sev));
+}
+function copyCode(i){
+  const code=document.getElementById(`code-${i}`).textContent;
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn=document.querySelector(`#card-${i} .copy-btn`);
+    btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);
+  });
+}
+function reset(){
+  document.getElementById('heroSection').style.display='block';
+  document.getElementById('howSection').style.display='block';
+  document.getElementById('featuresSection').style.display='grid';
+  document.getElementById('statsStrip').style.display='flex';
+  document.querySelector('.trust-section').style.display='block';
+  document.getElementById('results').style.display='none';
+  document.getElementById('loader').style.display='none';
+  document.getElementById('warningBox').style.display='none';
+  document.getElementById('repoInput').value='';
+  const btn=document.getElementById('scanBtn');
+  btn.disabled=false;btn.innerHTML='<span>🔍</span> Scan Repo';
+}
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+document.getElementById('repoInput').addEventListener('keydown',e=>{if(e.key==='Enter')startScan()});
+</script>
+</body>
+</html>
